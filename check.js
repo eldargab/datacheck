@@ -35,9 +35,9 @@ exports.all = function(obj, check) {
   })
 }
 
-exports.validator = validator
+exports.compile = compile
 
-function validator(spec, validators) {
+function compile(spec, validators) {
   validators = validators || exports.validators
   var checks = {}
   var nullable = spec.nullable
@@ -82,7 +82,7 @@ function Log(parent, path) {
 Log.prototype.error = function(msg, data) {
   data = data || {}
   data.message = msg
-  data.path = ''
+  data.path = data.path || ''
   this.push(data)
   if (this.throwImmediately) throw stopValidationException
 }
@@ -147,7 +147,7 @@ validators.schema = function(schema, validators) {
   var optional = {}
 
   for(var key in schema) {
-    var check = validator(schema[key], validators)
+    var check = compile(schema[key], validators)
     if (schema[key].required) {
       required[key] = check
     } else if (schema[key].def != null) {
@@ -164,7 +164,7 @@ validators.schema = function(schema, validators) {
 
       for(key in required) {
         if (obj[key] == null) {
-          log.error(key + ' required, but not given')
+          log.error('required, but not given', {path: '.'+key})
         } else {
           ret[key] = yield required[key](obj[key], log.at('.'+key))
         }
